@@ -1,0 +1,19 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Scan Reports
+vanguard_report.html
+target_report.html
+*.html
+
+# IDE / OS Files
+.vscode/
+.idea/
+.DS_Store
