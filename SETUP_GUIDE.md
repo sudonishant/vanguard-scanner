@@ -14,7 +14,7 @@ Follow these instructions to download, install, and execute the **Vanguard Web S
 graph TD
     A[Target Input] --> B[Domain Crawler]
     B --> C[HTTP Headers Auditor]
-    B --> D[XSS & SQL Injection Active Probes]
+    B --> D["XSS, SQLi, LFI, & Cmd Injection Active Probes"]
     C --> E[HTML Report Generator]
     D --> E
     E --> F[Vanguard Audit Report File]

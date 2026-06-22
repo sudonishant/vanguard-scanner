@@ -5,7 +5,7 @@
 [![Cybersecurity Tool](https://img.shields.io/badge/Cybersecurity-Ethical--Hacking-purple.svg)]()
 [![Platform Support](https://img.shields.io/badge/Platform-Kali--Linux-red.svg)]()
 
-**Vanguard** is a premium, modular command-line vulnerability scanner designed for ethical hackers, security analysts, and developers. It crawls target websites, evaluates HTTP response security headers, and tests endpoints/forms for Cross-Site Scripting (XSS) and SQL Injection (SQLi), generating interactive responsive HTML audit reports.
+**Vanguard** is a premium, modular command-line vulnerability scanner designed for ethical hackers, security analysts, and developers. It crawls target websites, evaluates HTTP response security headers, and tests endpoints/forms for Cross-Site Scripting (XSS), SQL Injection (SQLi), Local File Inclusion (LFI), and OS Command Injection, generating interactive responsive HTML audit reports.
 
 ---
 
@@ -20,6 +20,8 @@
 - **⚔️ Active Vulnerability Probing:**
   - **Cross-Site Scripting (XSS):** Param/form injection checks for parameter reflections.
   - **SQL Injection (SQLi):** Database driver exception check signatures.
+  - **Local File Inclusion (LFI):** Traversal check seeking system config/credential exposure.
+  - **OS Command Injection:** Shell operator auditing for arbitrary system code execution.
 - **📄 Premium HTML Report:** Generates an interactive, styled HTML report with detailed remediation advice for every vulnerability found.
 
 ---
@@ -29,6 +31,8 @@
 The scanner runs checks across the following security vulnerability classifications:
 *   **SQL Injection (SQLi)**: Probes inputs with database syntax triggers (e.g. `'`, `"`, `OR 1=1`) and monitors response buffers for MySQL, PostgreSQL, SQLite, and Microsoft SQL Server driver error leaks.
 *   **Cross-Site Scripting (Reflected XSS)**: Injects HTML/JS snippets into parameters and audits response DOMs for unescaped mirrors.
+*   **Local File Inclusion (LFI)**: Injects directory traversal strings (e.g. `../../../../etc/passwd` or `..\win.ini`) to check if the target reads files directly from unsanitized input parameters.
+*   **OS Command Injection**: Injects shell command symbols (e.g. `;`, `|`) with diagnostic commands to see if the server environment executes them and returns system metadata.
 *   **Missing Hardening Headers**: Checks for absent or misconfigured `Strict-Transport-Security` (HSTS), `Content-Security-Policy` (CSP), `X-Frame-Options` (Clickjacking protection), and `X-Content-Type-Options` (MIME sniffing prevention).
 *   **Server Information Disclosure**: Inspects headers like `Server`, `X-Powered-By`, and `X-AspNet-Version` for leaks of server OS or runtime version numbers.
 
