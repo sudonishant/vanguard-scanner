@@ -24,6 +24,16 @@
 
 ---
 
+## 🎯 Vulnerability Audit Scope & Checks
+
+The scanner runs checks across the following security vulnerability classifications:
+*   **SQL Injection (SQLi)**: Probes inputs with database syntax triggers (e.g. `'`, `"`, `OR 1=1`) and monitors response buffers for MySQL, PostgreSQL, SQLite, and Microsoft SQL Server driver error leaks.
+*   **Cross-Site Scripting (Reflected XSS)**: Injects HTML/JS snippets into parameters and audits response DOMs for unescaped mirrors.
+*   **Missing Hardening Headers**: Checks for absent or misconfigured `Strict-Transport-Security` (HSTS), `Content-Security-Policy` (CSP), `X-Frame-Options` (Clickjacking protection), and `X-Content-Type-Options` (MIME sniffing prevention).
+*   **Server Information Disclosure**: Inspects headers like `Server`, `X-Powered-By`, and `X-AspNet-Version` for leaks of server OS or runtime version numbers.
+
+---
+
 ## 🚀 Step-by-Step Installation & Setup
 
 ### Step 1: Clone the Repository (Download karein)
