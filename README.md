@@ -22,6 +22,8 @@
   - **SQL Injection (SQLi):** Database driver exception check signatures.
   - **Local File Inclusion (LFI):** Traversal check seeking system config/credential exposure.
   - **OS Command Injection:** Shell operator auditing for arbitrary system code execution.
+  - **Server-Side Template Injection (SSTI):** Evaluation auditing for dynamic template engines (e.g., Jinja2, Twig, Smarty).
+  - **Cross-Site Request Forgery (CSRF):** Auto-checking forms for missing security token safeguards.
 - **📄 Premium HTML Report:** Generates an interactive, styled HTML report with detailed remediation advice for every vulnerability found.
 
 ---
@@ -33,6 +35,8 @@ The scanner runs checks across the following security vulnerability classificati
 *   **Cross-Site Scripting (Reflected XSS)**: Injects HTML/JS snippets into parameters and audits response DOMs for unescaped mirrors.
 *   **Local File Inclusion (LFI)**: Injects directory traversal strings (e.g. `../../../../etc/passwd` or `..\win.ini`) to check if the target reads files directly from unsanitized input parameters.
 *   **OS Command Injection**: Injects shell command symbols (e.g. `;`, `|`) with diagnostic commands to see if the server environment executes them and returns system metadata.
+*   **Server-Side Template Injection (SSTI)**: Injects template expressions (e.g. `{{7*7}}`) into parameters and form fields to check if template engines evaluate them.
+*   **Cross-Site Request Forgery (CSRF)**: Checks state-changing forms for the presence of hidden security anti-CSRF token fields.
 *   **Missing Hardening Headers**: Checks for absent or misconfigured `Strict-Transport-Security` (HSTS), `Content-Security-Policy` (CSP), `X-Frame-Options` (Clickjacking protection), and `X-Content-Type-Options` (MIME sniffing prevention).
 *   **Server Information Disclosure**: Inspects headers like `Server`, `X-Powered-By`, and `X-AspNet-Version` for leaks of server OS or runtime version numbers.
 

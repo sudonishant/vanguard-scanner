@@ -54,6 +54,12 @@ class VulnerabilityScanner:
             "|dir"
         ]
         
+        self.ssti_payloads = [
+            "{{7*7}}",
+            "${7*7}",
+            "{{7+'7'}}"
+        ]
+        
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Vanguard/1.0"
         }
@@ -182,6 +188,32 @@ class VulnerabilityScanner:
                         break
                 except Exception:
                     pass
+            # 5. Test Command Injection in Form / Query (wait, let's keep name consistent - 5. Test for SSTI)
+            for payload in self.ssti_payloads:
+                modified_query = query_params.copy()
+                modified_query[param] = [payload]
+                
+                query_string = urlencode(modified_query, doseq=True)
+                test_url = urlunparse(parsed._replace(query=query_string))
+
+                try:
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    if "49" in res.text or "77" in res.text:
+                        findings.append({
+                            "type": "Server-Side Template Injection (SSTI)",
+                            "name": f"SSTI in query param: '{param}'",
+                            "severity": "High",
+                            "url": url,
+                            "parameter": param,
+                            "payload": payload,
+                            "method": "GET",
+                            "description": f"Injecting template engine expressions into '{param}' resulted in evaluation on the server side (response contains evaluated value).",
+                            "impact": "Can lead to full remote code execution (RCE) on the server, permitting full takeover of the server environment.",
+                            "remediation": "Do not pass user inputs directly to template rendering engines. Use context-aware escaping, or treat user inputs as data parameters instead of executable code."
+                        })
+                        break
+                except Exception:
+                    pass
         
         return findings
 
@@ -189,11 +221,36 @@ class VulnerabilityScanner:
         """Test forms (GET/POST) for XSS and SQL Injection."""
         findings = []
         action_url = form["action"]
-        method = form["method"]
+        method = form["method"].lower()
         inputs = form["inputs"]
 
         if not inputs:
             return findings
+
+        # Check for CSRF protection in POST forms
+        if method == "post":
+            has_csrf = False
+            csrf_names = ["csrf", "xsrf", "token", "authenticity", "secure"]
+            for inp in inputs:
+                inp_name_lower = inp.get("name", "").lower()
+                inp_type = inp.get("type", "").lower()
+                if inp_type == "hidden" and any(token_name in inp_name_lower for token_name in csrf_names):
+                    has_csrf = True
+                    break
+            
+            if not has_csrf:
+                findings.append({
+                    "type": "Cross-Site Request Forgery (CSRF)",
+                    "name": f"Missing CSRF Token in POST form: Action '{action_url}'",
+                    "severity": "Medium",
+                    "url": form["url"],
+                    "parameter": "N/A",
+                    "payload": "N/A",
+                    "method": "POST",
+                    "description": "The POST form does not contain any hidden anti-CSRF token. This permits attackers to submit state-changing actions on behalf of authenticated users.",
+                    "impact": "Attackers can perform unauthorized actions (e.g. changing passwords, updating email settings) on behalf of users if they visit a malicious site.",
+                    "remediation": "Implement unique, cryptographically secure anti-CSRF tokens for all state-changing forms. Validate this token on the server side before executing actions."
+                })
 
         # Test each input field individually
         for target_input in inputs:
@@ -330,6 +387,38 @@ class VulnerabilityScanner:
                             "description": f"Injecting command shell operators into form field '{input_name}' resulted in code execution.",
                             "impact": "Allows full server control, enabling data breach, pivot attacks, or ransomware.",
                             "remediation": "Do not pass user inputs to shell commands or sub-processes without strict regex validation or system sandboxing."
+                        })
+                        break
+                except Exception:
+                    pass
+
+            # 5. Test SSTI in Form
+            for payload in self.ssti_payloads:
+                data = {}
+                for inp in inputs:
+                    if inp["name"] == input_name:
+                        data[inp["name"]] = payload
+                    else:
+                        data[inp["name"]] = "test"
+
+                try:
+                    if method == "post":
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                    else:
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+
+                    if "49" in res.text or "77" in res.text:
+                        findings.append({
+                            "type": "Server-Side Template Injection (SSTI)",
+                            "name": f"Form SSTI in input: '{input_name}'",
+                            "severity": "High",
+                            "url": form["url"],
+                            "parameter": input_name,
+                            "payload": payload,
+                            "method": method.upper(),
+                            "description": f"Injecting template engine expressions into form field '{input_name}' resulted in evaluation on the server side (response contains evaluated value).",
+                            "impact": "Can lead to full remote code execution (RCE) on the server, permitting full takeover of the server environment.",
+                            "remediation": "Do not pass user inputs directly to template rendering engines. Use context-aware escaping, or treat user inputs as data parameters instead of executable code."
                         })
                         break
                 except Exception:
