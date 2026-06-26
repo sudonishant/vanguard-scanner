@@ -12,8 +12,17 @@ class Crawler:
         self.links_found = set()
 
     def is_same_domain(self, url):
-        """Check if the URL belongs to the target domain."""
-        return urlparse(url).netloc == self.target_domain
+        """Check if the URL belongs to the target domain (allowing www prefix changes)."""
+        netloc = urlparse(url).netloc.lower()
+        target = self.target_domain.lower()
+        if netloc == target:
+            return True
+        # Allow www.target if target is not www, and vice versa
+        if netloc.startswith("www.") and netloc[4:] == target:
+            return True
+        if target.startswith("www.") and target[4:] == netloc:
+            return True
+        return False
 
     def get_links_and_forms(self, url):
         """Fetch a page, extract links and forms."""

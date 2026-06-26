@@ -222,7 +222,9 @@ class VulnerabilityScanner:
         findings = []
         action_url = form["action"]
         method = form["method"].lower()
-        inputs = form["inputs"]
+        raw_inputs = form["inputs"]
+        # Filter out inputs that do not have a name (we cannot inject into nameless inputs, and this avoids KeyError)
+        inputs = [inp for inp in raw_inputs if inp.get("name")]
 
         if not inputs:
             return findings
