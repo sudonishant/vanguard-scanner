@@ -44,40 +44,109 @@
 
 ---
 
-## 🚀 Installation & Setup
+## 📥 Detailed Download & Installation Guide
 
 ### Prerequisites
-- Python 3.8 or higher
-- Git
+Before installing Vanguard, ensure your system has Python 3.8+ and `git` installed.
 
-### Step 1: Clone the Repository
+#### On Linux (Ubuntu / Debian / Kali Linux):
 ```bash
+sudo apt update
+sudo apt install -y python3 python3-pip python3-venv git
+```
+
+#### On macOS:
+```bash
+brew install python git
+```
+
+---
+
+### Option 1: Downloading via Git (Recommended)
+
+Open your terminal and execute the following commands step-by-step:
+
+```bash
+# 1. Clone the GitHub repository
 git clone https://github.com/sudonishant/vanguard-scanner.git
+
+# 2. Navigate into the project directory
 cd vanguard-scanner
 ```
 
-### Step 2: Create a Virtual Environment
+---
+
+### Option 2: Manual Download (ZIP Archive)
+
+If you don't have `git` installed:
+1. Download the ZIP file directly: [vanguard-scanner main.zip](https://github.com/sudonishant/vanguard-scanner/archive/refs/heads/main.zip)
+2. Extract the archive and open your terminal inside the extracted `vanguard-scanner-main` directory:
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
+cd path/to/vanguard-scanner-main
 ```
 
-### Step 3: Install Dependencies
+---
+
+## ⚙️ Environment Setup & Dependency Installation
+
+To prevent dependency conflicts with your system's global Python environment (avoiding `externally-managed-environment` errors), set up a virtual environment:
+
+### Step 1: Create a Virtual Environment
+
 ```bash
+python3 -m venv venv
+```
+
+### Step 2: Activate the Virtual Environment
+
+- **Linux / macOS (Bash/Zsh):**
+  ```bash
+  source venv/bin/activate
+  ```
+- **Windows (PowerShell):**
+  ```powershell
+  .\venv\Scripts\Activate.ps1
+  ```
+- **Windows (Command Prompt):**
+  ```cmd
+  venv\Scripts\activate.bat
+  ```
+
+*(Once activated, your terminal prompt will show `(venv)` at the beginning).*
+
+### Step 3: Upgrade Pip & Install Dependencies
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
 ---
 
-## 💻 Usage & CLI Reference
+## 💻 How to Run Vanguard Scanner
 
-### Basic Usage Command
-Run a full scan against a target URL and export an interactive HTML report:
+### 1. Verify Installation
+Check that the scanner CLI is ready by printing the help menu:
+```bash
+python vanguard.py --help
+```
+
+### 2. Run a Vulnerability Audit
+Execute a scan against your target URL and export an interactive HTML report:
 ```bash
 python vanguard.py https://example.com -o audit_report.html
 ```
 
-### Command-Line Arguments
+### 3. Open & View the Report
+Once completed, open the generated `audit_report.html` file in your preferred web browser:
+- **Linux:** `xdg-open audit_report.html`
+- **macOS:** `open audit_report.html`
+- **Windows:** `start audit_report.html`
+
+---
+
+## ⚙️ CLI Reference & Flags
+
 ```text
 positional arguments:
   target                Target URL to audit (e.g. https://example.com)
@@ -93,8 +162,8 @@ options:
 
 ---
 
-## 📖 Extended Documentation
-For comprehensive setup instructions, configuration details, and troubleshooting notes, consult the [SETUP_GUIDE.md](./SETUP_GUIDE.md).
+## 📖 Extended Troubleshooting & Setup Notes
+For advanced debugging (such as fixing BeautifulSoup parsing limits or network timeouts), read the full [SETUP_GUIDE.md](./SETUP_GUIDE.md).
 
 ---
 
