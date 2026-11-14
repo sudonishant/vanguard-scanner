@@ -1,6 +1,12 @@
 import os
 import json
+import html
 from datetime import datetime
+
+
+def _escape_html(value):
+    return html.escape(str(value), quote=True)
+
 
 class ReportGenerator:
     def __init__(self, target, findings, crawled_count, forms_count):
@@ -34,27 +40,28 @@ class ReportGenerator:
             """
         else:
             for idx, f in enumerate(self.findings):
-                severity_class = f.get("severity", "Low").lower()
+                severity = f.get("severity", "Low")
+                severity_class = _escape_html(str(severity).lower())
+                severity_text = _escape_html(severity)
                 
                 # Dynamic fields based on vulnerability type
                 meta_details = ""
                 if "url" in f:
-                    meta_details += f'<div class="meta-item"><strong>Target URL:</strong> <code>{f["url"]}</code></div>'
+                    meta_details += f'<div class="meta-item"><strong>Target URL:</strong> <code>{_escape_html(f["url"])}</code></div>'
                 if "parameter" in f:
-                    meta_details += f'<div class="meta-item"><strong>Parameter:</strong> <code>{f["parameter"]}</code></div>'
+                    meta_details += f'<div class="meta-item"><strong>Parameter:</strong> <code>{_escape_html(f["parameter"])}</code></div>'
                 if "method" in f:
-                    meta_details += f'<div class="meta-item"><strong>HTTP Method:</strong> <span class="badge badge-method">{f["method"]}</span></div>'
+                    meta_details += f'<div class="meta-item"><strong>HTTP Method:</strong> <span class="badge badge-method">{_escape_html(f["method"])}</span></div>'
                 if "payload" in f:
-                    # Escape payload for safe HTML display
-                    escaped_payload = f["payload"].replace("<", "&lt;").replace(">", "&gt;")
+                    escaped_payload = _escape_html(f["payload"])
                     meta_details += f'<div class="meta-item"><strong>Injected Payload:</strong> <code class="payload-box">{escaped_payload}</code></div>'
 
                 findings_html += f"""
                 <div class="card finding-card">
                     <div class="finding-header" onclick="toggleFinding('finding-{idx}')">
                         <div class="finding-title-group">
-                            <span class="severity-indicator sev-{severity_class}">{f.get('severity', 'Low')}</span>
-                            <h3 class="finding-title">{f.get('type', 'Security Finding')} - {f.get('name', '')}</h3>
+                            <span class="severity-indicator sev-{severity_class}">{severity_text}</span>
+                            <h3 class="finding-title">{_escape_html(f.get('type', 'Security Finding'))} - {_escape_html(f.get('name', ''))}</h3>
                         </div>
                         <span class="toggle-icon" id="icon-finding-{idx}">▼</span>
                     </div>
@@ -62,13 +69,13 @@ class ReportGenerator:
                         <div class="finding-details-grid">
                             <div class="details-left">
                                 <h4>Description</h4>
-                                <p>{f.get('description', 'No description available.')}</p>
+                                <p>{_escape_html(f.get('description', 'No description available.'))}</p>
                                 
                                 <h4>Impact</h4>
-                                <p>{f.get('impact', 'No impact details available.')}</p>
+                                <p>{_escape_html(f.get('impact', 'No impact details available.'))}</p>
                                 
                                 <h4>Remediation</h4>
-                                <p class="remediation-text">💡 {f.get('remediation', 'No remediation available.')}</p>
+                                <p class="remediation-text">💡 {_escape_html(f.get('remediation', 'No remediation available.'))}</p>
                             </div>
                             <div class="details-right">
                                 <h4>Technical Context</h4>
@@ -87,7 +94,7 @@ class ReportGenerator:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vanguard Security Scan Report - {self.target}</title>
+    <title>Vanguard Security Scan Report - {_escape_html(self.target)}</title>
     <style>
         :root {{
             --bg-color: #0b0f19;
@@ -469,7 +476,7 @@ class ReportGenerator:
                 <span style="font-weight: 300; color: var(--text-muted)">| Vulnerability Report</span>
             </div>
             <div class="scan-target-text">
-                Target URL: <code>{self.target}</code>
+                Target URL: <code>{_escape_html(self.target)}</code>
             </div>
             <div class="meta-grid">
                 <div class="meta-card">
@@ -478,11 +485,11 @@ class ReportGenerator:
                 </div>
                 <div class="meta-card">
                     <h5>Pages Crawled</h5>
-                    <p>{self.crawled_count}</p>
+                    <p>{_escape_html(self.crawled_count)}</p>
                 </div>
                 <div class="meta-card">
                     <h5>Forms Analyzed</h5>
-                    <p>{self.forms_count}</p>
+                    <p>{_escape_html(self.forms_count)}</p>
                 </div>
                 <div class="meta-card">
                     <h5>Total Vulnerabilities</h5>
