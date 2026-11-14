@@ -1,13 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
-import urllib3
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
-# Suppress SSL certificate warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 class VulnerabilityScanner:
-    def __init__(self):
+    def __init__(self, verify_tls=True):
+        self.verify_tls = verify_tls
         # Payloads to inject
         self.xss_payloads = [
             "<script>alert('VanguardXSS')</script>",
@@ -86,7 +83,7 @@ class VulnerabilityScanner:
                 test_url = urlunparse(parsed._replace(query=query_string))
 
                 try:
-                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=self.verify_tls)
                     if payload in res.text:
                         findings.append({
                             "type": "Cross-Site Scripting (XSS)",
@@ -113,7 +110,7 @@ class VulnerabilityScanner:
                 test_url = urlunparse(parsed._replace(query=query_string))
 
                 try:
-                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=self.verify_tls)
                     for error in self.sql_errors:
                         if error.lower() in res.text.lower():
                             findings.append({
@@ -144,7 +141,7 @@ class VulnerabilityScanner:
                 test_url = urlunparse(parsed._replace(query=query_string))
 
                 try:
-                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=self.verify_tls)
                     if "root:x:" in res.text or "[extensions]" in res.text or "[fonts]" in res.text:
                         findings.append({
                             "type": "Local File Inclusion (LFI)",
@@ -171,7 +168,7 @@ class VulnerabilityScanner:
                 test_url = urlunparse(parsed._replace(query=query_string))
 
                 try:
-                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=self.verify_tls)
                     if "root:x:" in res.text or "Windows IP Configuration" in res.text or "<DIR>" in res.text:
                         findings.append({
                             "type": "OS Command Injection",
@@ -197,7 +194,7 @@ class VulnerabilityScanner:
                 test_url = urlunparse(parsed._replace(query=query_string))
 
                 try:
-                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=False)
+                    res = requests.get(test_url, headers=self.headers, timeout=5, verify=self.verify_tls)
                     if "49" in res.text or "77" in res.text:
                         findings.append({
                             "type": "Server-Side Template Injection (SSTI)",
@@ -273,9 +270,9 @@ class VulnerabilityScanner:
 
                 try:
                     if method == "post":
-                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=self.verify_tls)
                     else:
-                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=self.verify_tls)
 
                     if payload in res.text:
                         findings.append({
@@ -305,9 +302,9 @@ class VulnerabilityScanner:
 
                 try:
                     if method == "post":
-                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=self.verify_tls)
                     else:
-                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=self.verify_tls)
 
                     for error in self.sql_errors:
                         if error.lower() in res.text.lower():
@@ -341,9 +338,9 @@ class VulnerabilityScanner:
 
                 try:
                     if method == "post":
-                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=self.verify_tls)
                     else:
-                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=self.verify_tls)
 
                     if "root:x:" in res.text or "[extensions]" in res.text or "[fonts]" in res.text:
                         findings.append({
@@ -373,9 +370,9 @@ class VulnerabilityScanner:
 
                 try:
                     if method == "post":
-                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=self.verify_tls)
                     else:
-                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=self.verify_tls)
 
                     if "root:x:" in res.text or "Windows IP Configuration" in res.text or "<DIR>" in res.text:
                         findings.append({
@@ -405,9 +402,9 @@ class VulnerabilityScanner:
 
                 try:
                     if method == "post":
-                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.post(action_url, data=data, headers=self.headers, timeout=5, verify=self.verify_tls)
                     else:
-                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=False)
+                        res = requests.get(action_url, params=data, headers=self.headers, timeout=5, verify=self.verify_tls)
 
                     if "49" in res.text or "77" in res.text:
                         findings.append({

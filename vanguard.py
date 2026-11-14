@@ -46,6 +46,11 @@ def main():
     parser.add_argument("target", help="Target URL to scan (e.g., https://example.com)")
     parser.add_argument("-o", "--output", default="vanguard_report.html", help="Path to save the HTML report (default: vanguard_report.html)")
     parser.add_argument("-d", "--depth", type=int, default=15, help="Maximum number of pages to crawl (default: 15)")
+    parser.add_argument(
+        "--insecure",
+        action="store_true",
+        help="Disable TLS certificate verification (only for authorized self-signed/test targets; vulnerable to MITM)",
+    )
     
     if len(sys.argv) == 1:
         parser.print_help()
@@ -53,6 +58,7 @@ def main():
 
     args = parser.parse_args()
     target_url = args.target
+    verify_tls = not args.insecure
 
     # Validate target URL
     if not target_url.startswith(("http://", "https://")):
@@ -71,19 +77,19 @@ def main():
     try:
         # Step 1: Scan HTTP Security Headers
         with console.status("[bold cyan]Analyzing HTTP security headers...", spinner="dots") as status:
-            header_scanner = HeaderScanner(target_url)
+            header_scanner = HeaderScanner(target_url, verify_tls=verify_tls)
             header_findings = header_scanner.analyze()
             findings.extend(header_findings)
             console.print("[green]✔[/green] HTTP Security Header check completed.")
 
         # Step 2: Crawl Website for Links and Forms
         with console.status("[bold cyan]Crawling website & discovering forms...", spinner="dots") as status:
-            crawler = Crawler(target_url, max_pages=args.depth)
+            crawler = Crawler(target_url, max_pages=args.depth, verify_tls=verify_tls)
             crawled_urls, forms = crawler.crawl()
             console.print(f"[green]✔[/green] Crawling finished. Visited [bold]{len(crawled_urls)}[/bold] URLs and found [bold]{len(forms)}[/bold] forms.")
 
         # Step 3: Test Vulnerabilities
-        vuln_scanner = VulnerabilityScanner()
+        vuln_scanner = VulnerabilityScanner(verify_tls=verify_tls)
         
         # We use Progress bar for active scanning
         with Progress(

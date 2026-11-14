@@ -1,12 +1,9 @@
 import requests
-import urllib3
-
-# Suppress SSL certificate warnings
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class HeaderScanner:
-    def __init__(self, target_url):
+    def __init__(self, target_url, verify_tls=True):
         self.target_url = target_url
+        self.verify_tls = verify_tls
         self.security_headers = {
             "Content-Security-Policy": {
                 "description": "Defines which dynamic resources are allowed to load. Helps prevent XSS.",
@@ -37,7 +34,7 @@ class HeaderScanner:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Vanguard/1.0"
             }
-            response = requests.get(self.target_url, headers=headers, timeout=5, verify=False)
+            response = requests.get(self.target_url, headers=headers, timeout=5, verify=self.verify_tls)
             response_headers = response.headers
 
             # 1. Check for missing security headers
