@@ -3,10 +3,11 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
 class Crawler:
-    def __init__(self, base_url, max_pages=15):
+    def __init__(self, base_url, max_pages=15, verify_tls=True):
         self.base_url = base_url
         self.target_domain = urlparse(base_url).netloc
         self.max_pages = max_pages
+        self.verify_tls = verify_tls
         self.visited_urls = set()
         self.forms_found = []
         self.links_found = set()
@@ -30,7 +31,7 @@ class Crawler:
             headers = {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Vanguard/1.0"
             }
-            response = requests.get(url, headers=headers, timeout=5, verify=False)
+            response = requests.get(url, headers=headers, timeout=5, verify=self.verify_tls)
             if response.status_code != 200:
                 return set(), []
             
